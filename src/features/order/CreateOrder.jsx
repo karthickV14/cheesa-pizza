@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
 import { createOrder } from "../../services/apiRestaurant";
 import Button from "../../ui/Button";
+import EmptyCart from "../cart/EmptyCart";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCart, getCart, getTotalCartPrice } from "../cart/cartSlice";
-import EmptyCart from "../cart/EmptyCart";
 import store from "../../store";
 import { formatCurrency } from "../../utils/helpers";
 import { fetchAddress } from "../user/userSlice";
@@ -42,7 +42,7 @@ function CreateOrder() {
   return (
     <div className="px-4 py-6">
       <h2 className="mb-8 text-xl font-semibold">
-        Ready to order? Let&apos;s go!
+        Ready to order? Let&lsquo;s go!
       </h2>
 
       {/* <Form method="POST" action="/order/new"> */}
@@ -63,7 +63,7 @@ function CreateOrder() {
           <div className="grow">
             <input className="input w-full" type="tel" name="phone" required />
             {formErrors?.phone && (
-              <p className="mt-2 rounded-md bg-red-300 p-2 text-xs text-red-700">
+              <p className="mt-2 rounded-md bg-red-100 p-2 text-xs text-red-700">
                 {formErrors.phone}
               </p>
             )}
@@ -82,38 +82,38 @@ function CreateOrder() {
               required
             />
             {addressStatus === "error" && (
-              <p className="mt-2 rounded-md bg-red-300 p-2 text-xs text-red-700">
+              <p className="mt-2 rounded-md bg-red-100 p-2 text-xs text-red-700">
                 {errorAddress}
               </p>
             )}
           </div>
+
+          {!position.latitude && !position.longitude && (
+            <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
+              <Button
+                disabled={isLoadingAddress}
+                type="small"
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(fetchAddress());
+                }}
+              >
+                Get position
+              </Button>
+            </span>
+          )}
         </div>
-        {!position.latitude && !position.longitude && (
-          <span className="absolute right-[3px] z-50 md:right-[5px]">
-            {/*top-[3px] md:top-[5px] */}
-            <Button
-              disabled={isLoadingAddress}
-              type="small"
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(fetchAddress());
-              }}
-            >
-              Get Loaction
-            </Button>
-          </span>
-        )}
 
         <div className="mb-12 flex items-center gap-5">
           <input
-            className="h-6 w-6 accent-cyan-400 focus:ring focus:ring-cyan-400 focus:ring-offset-2"
+            className="h-6 w-6 accent-cyan-400 focus:outline-none focus:ring focus:ring-cyan-400 focus:ring-offset-2"
             type="checkbox"
             name="priority"
             id="priority"
             value={withPriority}
             onChange={(e) => setWithPriority(e.target.checked)}
           />
-          <label className="font-medium" htmlFor="priority">
+          <label htmlFor="priority" className="font-medium">
             Want to yo give your order priority?
           </label>
         </div>
@@ -129,9 +129,10 @@ function CreateOrder() {
                 : ""
             }
           />
+
           <Button disabled={isSubmitting || isLoadingAddress} type="primary">
             {isSubmitting
-              ? "Placing order..."
+              ? "Placing order...."
               : `Order now from ${formatCurrency(totalPrice)}`}
           </Button>
         </div>
@@ -150,19 +151,19 @@ export async function action({ request }) {
     priority: data.priority === "true",
   };
 
+  console.log(order);
+
   const errors = {};
   if (!isValidPhone(order.phone))
     errors.phone =
       "Please give us your correct phone number. We might need it to contact you.";
 
-  if (Object.keys(errors).length > 0) {
-    return errors;
-  }
+  if (Object.keys(errors).length > 0) return errors;
 
-  //  If everything is okay, create new order and redirect
+  // If everything is okay, create new order and redirect
   const newOrder = await createOrder(order);
 
-  //  Do not overuse
+  // Do NOT overuse
   store.dispatch(clearCart());
 
   return redirect(`/order/${newOrder.id}`);

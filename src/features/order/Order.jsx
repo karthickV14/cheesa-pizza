@@ -1,6 +1,8 @@
 // Test ID: IIDSAT
-import OrderItem from "./OrderItem";
 import { useFetcher, useLoaderData } from "react-router-dom";
+
+import OrderItem from "./OrderItem";
+
 import { getOrder } from "../../services/apiRestaurant";
 import {
   calcMinutesLeft,
@@ -12,16 +14,14 @@ import UpdateOrder from "./UpdateOrder";
 
 function Order() {
   const order = useLoaderData();
-
   const fetcher = useFetcher();
 
   useEffect(
     function () {
-      if (!fetcher.data && fetcher.state === "idle") fetcher.load("./menu");
+      if (!fetcher.data && fetcher.state === "idle") fetcher.load("/menu");
     },
     [fetcher],
   );
-  console.log(fetcher.data);
 
   // Everyone can search for all orders, so for privacy reasons we're gonna gonna exclude names or address, these are only for the restaurant staff
   const {
@@ -33,12 +33,13 @@ function Order() {
     estimatedDelivery,
     cart,
   } = order;
+
   const deliveryIn = calcMinutesLeft(estimatedDelivery);
 
   return (
     <div className="space-y-8 px-4 py-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold">Order #{id} Status</h2>
+        <h2 className="text-xl font-semibold">Order #{id} status</h2>
 
         <div className="space-x-2">
           {priority && (
@@ -52,18 +53,18 @@ function Order() {
         </div>
       </div>
 
-      <div className="flex-wap flex items-center justify-between gap-2 bg-slate-200 px-6 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-200 px-6 py-5">
         <p className="font-medium">
           {deliveryIn >= 0
             ? `Only ${calcMinutesLeft(estimatedDelivery)} minutes left 😃`
             : "Order should have arrived"}
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-xs text-slate-500">
           (Estimated delivery: {formatDate(estimatedDelivery)})
         </p>
       </div>
 
-      <ul className="divide divide-slate-200 border-b border-t">
+      <ul className="dive-slate-200 divide-y border-b border-t">
         {cart.map((item) => (
           <OrderItem
             item={item}
@@ -81,20 +82,24 @@ function Order() {
         <p className="text-sm font-medium text-slate-600">
           Price pizza: {formatCurrency(orderPrice)}
         </p>
-        {priority && <p>Price priority: {formatCurrency(priorityPrice)}</p>}
+        {priority && (
+          <p className="text-sm font-medium text-slate-600">
+            Price priority: {formatCurrency(priorityPrice)}
+          </p>
+        )}
         <p className="font-bold">
           To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
         </p>
       </div>
+
       {!priority && <UpdateOrder order={order} />}
     </div>
   );
 }
 
 export async function loader({ params }) {
-  const { orderId } = params;
-  if (!orderId) throw new Error("Order ID is missing.");
   const order = await getOrder(params.orderId);
   return order;
 }
+
 export default Order;
